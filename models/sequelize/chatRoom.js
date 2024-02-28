@@ -8,7 +8,6 @@ module.exports = function (sequelize, DataTypes) {
 			primaryKey: true,
 			autoIncrement: true
 		},
-
 		name: {
 			type: DataTypes.STRING(45),
 			allowNull: false
@@ -17,14 +16,7 @@ module.exports = function (sequelize, DataTypes) {
 			type: DataTypes.STRING(300),
 			allowNull: true
 		},
-		userOne: {
-			type: DataTypes.STRING(300),
-			allowNull: true
-		},
-		userTwo: {
-			type: DataTypes.INTEGER(10),
-			allowNull: true
-		},  
+ 
 	}, {
 		tableName: 'chatRoom',
 		timestamps: true

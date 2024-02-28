@@ -25,6 +25,9 @@ module.exports = function (sequelize, DataTypes) {
       password: {
         type: DataTypes.STRING(200),
         allowNull: false,
+      },image: {
+        type: DataTypes.STRING(),
+        allowNull: true
       },
       about: {
         type: DataTypes.VIRTUAL,

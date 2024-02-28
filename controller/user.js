@@ -2,11 +2,11 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const MyError = require("../utils/myError");
-
+const uploadImage = require("./uploadImage");
 
 exports.register = asyncHandler(async (req, res, next) => {
-
   const user = await req.db.user.create(req.body);
+  await user.reload({ attributes: { exclude: ["password"] } });
 
   const token = getJsonWebToken();
 
@@ -16,7 +16,6 @@ exports.register = asyncHandler(async (req, res, next) => {
     user: user,
   });
 });
-
 
 // логин хийнэ
 exports.login = asyncHandler(async (req, res, next) => {
@@ -28,7 +27,7 @@ exports.login = asyncHandler(async (req, res, next) => {
   console.log(email);
 
   // Тухайн хэрэглэгчийн хайна
-  const user = await req.db.user.findOne({ where: { email: email }});
+  const user = await req.db.user.findOne({ where: { email: email } });
   console.log(user);
 
   if (!user || user === undefined || user === null) {
@@ -47,15 +46,6 @@ exports.login = asyncHandler(async (req, res, next) => {
   });
 });
 
-// exports.getUsers = asyncHandler(async (req, res, next) => {
-//   // let user = await req.db.user.findByPk(req.params.id);
-
-//   res.status(200).json({
-//     success: true,
-//     data: 'user'
-//   });
-// });
-
 exports.getUser = asyncHandler(async (req, res, next) => {
   let user = await req.db.user.findByPk(req.params.id);
   if (!user) {
@@ -63,31 +53,32 @@ exports.getUser = asyncHandler(async (req, res, next) => {
   }
   res.status(200).json({
     success: true,
-    data: user
+    data: user,
   });
 });
 
-
 exports.updateUser = asyncHandler(async (req, res, next) => {
-
-  try {
-    let user = await req.db.user.findByPk(req.params.id);
-
-    if (!user) {
-      throw new Error();
+  console.log(req.body.image);
+  if (req.body.image) {
+    const response = await uploadImage(req.body.image);
+    if (!response.url) {
+      throw new MyError("Profile zurag oruulaxad aldaa garlaa", 501);
     }
-
-    user = await user.update(req.body);
-
-    res.status(200).json({
-      success: true,
-      data: user
-    });
-
-  } catch (e) {
-
+    req.body.image = response.url;
   }
 
+  let user = await req.db.user.findByPk(req.params.id);
+
+  if (!user) {
+    throw new MyError();
+  }
+
+  user = await user.update(req.body);
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
 });
 
 exports.deleteUser = asyncHandler(async (req, res, next) => {
@@ -100,7 +91,7 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
   await user.destroy();
   res.status(200).json({
     success: true,
-    data: user
+    data: user,
   });
 });
 const getJsonWebToken = function () {
